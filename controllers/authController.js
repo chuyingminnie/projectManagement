@@ -2,9 +2,11 @@ const {
     promisify
 } = require('util');
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 
+const db = require('../models/index');
+const User = db.sequelize.models.User;
+const Position = db.sequelize.models.Position;
 
 const createToken = id => {
     return jwt.sign({
@@ -14,15 +16,23 @@ const createToken = id => {
     });
 };
 exports.hello = async (req, res, next) => {
-    let sql = `SELECT * FROM user`;
-    db.query(sql, function (err, data, fields) {
-        if (err) throw err;
-        res.json({
-            status: 200,
-            data,
-            message: "User lists retrieved successfully"
-        })
-    })
+    const data = User.findAll({
+
+        include: [
+            {
+                model: db.Position
+            }
+        ]
+    }).then(function (result) {
+        res.send(result);
+    });
+}
+exports.world = async (req, res, next) => {
+    const data = Position.findAll({
+        raw: true
+    }).then(function (result) {
+        res.send(result);
+    });
 }
 exports.login = async (req, res, next) => {
     try {
